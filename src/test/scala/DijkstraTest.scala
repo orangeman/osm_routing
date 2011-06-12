@@ -13,8 +13,8 @@ class DijkstraTestSuite extends JUnitSuite {
 
   @Test def testDijkstra() { 
 
-	Osm.parse("some.osm")
-	val path = Dijkstra(23, 224)
+	//Osm.parse("allgaeu.osm")
+	val path = Dijkstra(341, 272694)//303137)//7209)
 	assertEquals(path.size, 100)
 	kml.write(path, "output.kml")
 	

@@ -24,18 +24,18 @@ import scala.xml.XML
 
 object kml {
 	
-	val latlon = ArrayBuffer[LatLon]()
-	case class LatLon(lat:Float, lon:Float)
-	val in = new DataInputStream(new FileInputStream(new File("latlns.bin")))
-	while (in.available != 0) { latlon += LatLon(in.readFloat,in.readFloat) }
+val latlon = ArrayBuffer[LatLon]()
+case class LatLon(lat:Float, lon:Float)
+val in = new DataInputStream(new FileInputStream(new File("latlns.bin")))
+while (in.available != 0) { latlon += LatLon(in.readFloat,in.readFloat) }
 
 
 def write(path: List[Int], file: String) {
 
-val kml = build(path)
-print("writing kml..")
-XML.save(file, kml, "UTF-8", true, null)
-println(" Done.")
+  val kml = build(path)
+  print("writing kml..")
+  XML.save(file, kml, "UTF-8", true, null)
+  println(" Done.")
 
 }
 
@@ -62,36 +62,7 @@ def build(path: List[Int]) = {
   }     
   </Document>
 </kml>
-}
-
-
-def edges(edges: List[Int]) {
-
-val kml =
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  <Document>
-   <Style id="yellowLineStyle">
-     <LineStyle>
-       <width>42</width>
-     </LineStyle>
-   </Style>
-  { for (edge <- edges) yield
-    <Placemark>
-      <name>Foo</name>
-      <description>foo bar</description>
-      <styleUrl>#yellowLineStyle</styleUrl>
-      <LineString>
-        <extrude>1</extrude>
-        <tessellate>1</tessellate>
-        <coordinates> 
-        </coordinates>
-      </LineString>
-    </Placemark>
-  } 
-  </Document>
-</kml>
 
 }
-
 }
 

@@ -28,41 +28,42 @@ object Dijkstra {
 	def getSPT(source: Int, target: Int): Map[Int, Node] = {
 
 		val heap = new FibonacciHeap[Node](Node.min)
-		val visited = Map[Int, Node]()
+		val spt = Map[Int, Node]()
 		
 		val s = Node(source, dist = 0)
-		visited(s.id) = s
 		heap.insert(s)
+		spt(s.id) = s
 
 		while (!heap.empty) {
 
 			var node = heap.extractMin.get
 			node.settled = true
+			//println("settled "+node+"  searched "+spt.size+" nodes)  \n"+heap+"\n"+target)
 
 			if (node.id == target) {
-				return visited
+				return spt
 			}
 
 			node.neighbours { (weight, id) =>
-
+				//println("   + relax edge ("+weight+"m) --> "+id)
 				val neighbour = Node(id)
 				neighbour.pred = node.id
 				neighbour.dist = node.dist + weight
 
-				visited.get(id) match {
+				spt.get(id) match {
 
 					case Some(visited) if visited.settled =>
 					case Some(visited) if (neighbour.dist < visited.dist) =>
 						heap.decreaseKey(visited, neighbour)
 					case None =>
 						heap.insert(neighbour)
-						visited(neighbour.id) = neighbour
+						spt(neighbour.id) = neighbour
 					case _ => // println("nothing to do")
 				}
 			}			
 		}
-		println("NO PATH FOUND!")
-		visited
+		println("NO PATH FOUND!  (searched "+spt.size+" nodes)")
+		spt
 	}
 
 	def shortestPath(source: Int, target: Int): List[Int] = {
