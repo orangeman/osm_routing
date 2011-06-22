@@ -25,7 +25,17 @@ import java.io.DataOutputStream
 import scala.collection.mutable.Map
 import scala.collection.mutable.ArrayBuffer
 
-object Osm {
+object OsmParser {
+
+  def main(args: Array[String]) {
+	if (args.length != 1)
+      println("usage: parse <file>.osm")
+    else {
+      val start = System.currentTimeMillis()
+      parse(args(0))
+      println(((start-System.currentTimeMillis())/60000)+"min")
+    }
+  }
 
 
   def parse(osm_file: String) {
@@ -49,10 +59,27 @@ object Osm {
 	
 		val speed = ((way\"tag" filter { (t) => (t\"@k").text == "highway" })
 									\ "@v").text match {
+			case "secondary_link" => 30
+			case "motorway_link" => 50
+			case "living_street" => 30
+			case "unclassified" => 30
+			case "primary_link" => 30
 			case "residential" => 20
+			case "trunk_link" => 30
 			case "secondary" => 60
+			case "motorway" => 90
 			case "tertiary" => 40
+			case "service" => 30
 			case "primary" => 80
+			case "track" => 30
+			case "trunk" => 50
+			case "road" => 50
+			case "path" => 10
+			case "steps" => 0
+			case "footway" => 10
+			case "cycleway" => 20
+			case "pedestrian" => 10
+			case (hw:String) if (!hw.equals("")) => println("highway "+hw); 10
 			case _ => 0
 		}
 	
@@ -89,8 +116,12 @@ object Osm {
 			id = e.from  
 			node_out.writeInt(edge_buf.size) 
 			osm_id_map(id) = osm_id_map.size
-			latlons.writeFloat(nodes(e.from).lat)
-			latlons.writeFloat(nodes(e.from).lon)
+			nodes.get(e.from) match {
+			case Some(node) =>
+				latlons.writeFloat(node.lat)
+				latlons.writeFloat(node.lon)
+			case None =>
+			}
 		}
 		dist_out.writeInt(e.dist)  // write dists
 		edge_buf += e.to  // collect edge array
@@ -129,8 +160,11 @@ object Osm {
   case class Node(lat:Float, lon:Float)
   case class Edge(from:Int, to:Int, dist:Int)
 
-  implicit def Int2Node(id:Int): Node = nodes(id)
-
+  implicit def Int2Node(id:Int): Node = 
+	nodes.get(id) match {
+	  case Some(node) => node
+	  case None => Node(0f,0f)
+	}
   }
 
 

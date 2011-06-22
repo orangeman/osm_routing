@@ -1,6 +1,7 @@
 import sbt._
 
-class MyProject(info: ProjectInfo) extends DefaultWebProject(info) {
+
+class Project(info: ProjectInfo) extends DefaultWebProject(info) {
   val scalatraVersion = "2.0.0.M3"
   val scalatra = "org.scalatra" %% "scalatra" % scalatraVersion
   val scalate = "org.scalatra" %% "scalatra-scalate" % scalatraVersion
@@ -18,4 +19,16 @@ class MyProject(info: ProjectInfo) extends DefaultWebProject(info) {
   val sonatypeNexusSnapshots = "Sonatype Nexus Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   // For Scalate
   val fuseSourceSnapshots = "FuseSource Snapshot Repository" at "http://repo.fusesource.com/nexus/content/repositories/snapshots"
+
+
+  lazy val parse = task { args =>
+    val p = path(".") * "*.osm"
+log.info(p.toString )
+	if(args.length != 1)
+      task { Some("Usage: parse <file>.osm") }
+    else 
+      runTask(Some("de.andlabs.routing.OsmParser"), runClasspath, args) dependsOn(compile)
+  } describedAs("parse openstreetmap file") completeWith((path(".") * "*.osm").get.map(_.toString.replace("./","")).toSeq)
+
+
 }

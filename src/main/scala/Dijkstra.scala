@@ -38,14 +38,14 @@ object Dijkstra {
 
 			var node = heap.extractMin.get
 			node.settled = true
-			//println("settled "+node+"  searched "+spt.size+" nodes)  \n"+heap+"\n"+target)
+			println("settled "+node+"  searched "+spt.size+" nodes)  \n"+heap+"\n"+target)
 
 			if (node.id == target) {
 				return spt
 			}
 
 			node.neighbours { (weight, id) =>
-				//println("   + relax edge ("+weight+"m) --> "+id)
+				println("   + relax edge ("+weight+"m) --> "+id)
 				val neighbour = Node(id)
 				neighbour.pred = node.id
 				neighbour.dist = node.dist + weight
@@ -55,6 +55,7 @@ object Dijkstra {
 					case Some(visited) if visited.settled =>
 					case Some(visited) if (neighbour.dist < visited.dist) =>
 						heap.decreaseKey(visited, neighbour)
+						spt(neighbour.id) = neighbour
 					case None =>
 						heap.insert(neighbour)
 						spt(neighbour.id) = neighbour
