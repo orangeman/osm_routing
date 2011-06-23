@@ -20,19 +20,23 @@ package de.andlabs.routing
 import org.scalatra._
 import java.net.URL
 import scalate.ScalateSupport
+import de.andlabs.routing.Graph.Node
 
 
 class WebApi extends ScalatraFilter with ScalateSupport {
 
 
-  get("/*.kml") {
+  Graph.load // when starting server
 
-	val start = System.currentTimeMillis()
+
+  get("/route.kml") {
+
 	if (!params.contains("from") || !params.contains("to"))
-		<h1>please specify origin and destination ids</h1>
+		<h1>please specify from and to parameters</h1>
 	else {	
-		val path = Dijkstra.shortestPath(params("from").toInt, params("to").toInt)
-		println("FOUND ROUTE ("+(System.currentTimeMillis()-start)+"ms)")
+		val start = System.currentTimeMillis()
+		val path = new Dijkstra(params("from").toInt, params("to").toInt).getPath
+		println("answered request in "+(System.currentTimeMillis()-start)+"ms (path: "+path.size+" nodes)\n")
 		contentType = "application/vnd.google-earth.kml+xml"
 		kml.build(path)	
 	}

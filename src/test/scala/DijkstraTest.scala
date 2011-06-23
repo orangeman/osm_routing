@@ -13,7 +13,7 @@ class DijkstraTestSuite extends JUnitSuite {
 
   @Test def testDijkstra() { 
 
-	val path = Dijkstra(1296, 15475)//303137)//7209)
+	val path = Dijkstra(273, 1428)//303137)//7209)
 	//assertEquals(path.size, 100)
 	kml.write(path, "output.kml")
 	

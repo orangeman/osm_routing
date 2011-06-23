@@ -32,6 +32,14 @@ class FibonacciHeap[A <% Ordered[A]](val aMin:A) extends Heap[A] {
   }
   
   def empty = min == null
+
+  override def += (a: A) = {
+	if (keyNodeMap.contains(a)) {
+		println("REINSERTING!!")
+		decreaseKey(a,a)
+	} else
+	insert(a)
+  }
   
   // insert a new element ... cost O(1)  (actual and amortized)
   def insert(a:A) = {

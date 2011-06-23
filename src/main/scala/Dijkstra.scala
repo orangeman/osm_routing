@@ -17,72 +17,70 @@
 
 package de.andlabs.routing
 
-import net.pragyah.scalgorithms.heaps.FibonacciHeap
 import scala.collection.mutable.{ListBuffer, Map}
 import Graph.Node
 
 
-object Dijkstra {
+class Dijkstra(source: Int, target: Int) {
 
 
-	def getSPT(source: Int, target: Int): Map[Int, Node] = {
+	def run {
 
-		val heap = new FibonacciHeap[Node](Node.min)
-		val spt = Map[Int, Node]()
-		
-		val s = Node(source, dist = 0)
-		heap.insert(s)
-		spt(s.id) = s
+		val Q = new BinaryHeap()
+		Q.insert(Node(source, dist = 0))
 
-		while (!heap.empty) {
+		while (!Q.isEmpty) {
 
-			var node = heap.extractMin.get
-			node.settled = true
-			println("settled "+node+"  searched "+spt.size+" nodes)  \n"+heap+"\n"+target)
+			var node = Q.extractMin
 
 			if (node.id == target) {
-				return spt
+				println("PATH FOUND (searched "+spt.size+" nodes(")
+				return
 			}
 
-			node.neighbours { (weight, id) =>
-				println("   + relax edge ("+weight+"m) --> "+id)
-				val neighbour = Node(id)
-				neighbour.pred = node.id
-				neighbour.dist = node.dist + weight
+			node.foreach_outgoing { (neighbour , weight) => //relax
 
-				spt.get(id) match {
+				if (neighbour.dist > node.dist + weight) {
+					
+					neighbour.dist = node.dist + weight
+					neighbour.pred = node
 
-					case Some(visited) if visited.settled =>
-					case Some(visited) if (neighbour.dist < visited.dist) =>
-						heap.decreaseKey(visited, neighbour)
-						spt(neighbour.id) = neighbour
-					case None =>
-						heap.insert(neighbour)
-						spt(neighbour.id) = neighbour
-					case _ => // println("nothing to do")
+					if (neighbour.visited)
+						Q.decreaseKey(neighbour)
+					else
+						Q.insert(neighbour)
 				}
-			}			
+			}
 		}
-		println("NO PATH FOUND!  (searched "+spt.size+" nodes)")
-		spt
+		println("NO PATH FOUND!!!   (searched "+spt.size+" nodes)")
 	}
 
-	def shortestPath(source: Int, target: Int): List[Int] = {
-
-		val spt = getSPT(source, target)
+	
+	def getPath = {
+		run // the algorithm
+		var node: Node = target
 		val path = ListBuffer[Int]()
-
-		var node = spt(target)
-		while (node.pred != 0) {
-			path += node.id
-			node = spt(node.pred)
+		while (node.pred != null) {
+			path += node.id //
+			node = node.pred
 		}
 		path += node.id
-		return path.toList
+		path.toList
 	}
 
-	def apply(source: Int, target: Int): List[Int] = {
-		shortestPath(source, target)
+	def getDist = {
+		run // alg
+		target.dist
 	}
+
+
+
+	// some magic
+	var spt: Map[Int, Node] = Map[Int, Node]()
+	implicit def getSPTNode(id: Int): Node = { 
+		spt.get(id) match { // even more magic
+		 case Some(node) => node; case None => 
+		   val nd = Node(id); spt(id) = nd; nd
+	}} 
 }
 
