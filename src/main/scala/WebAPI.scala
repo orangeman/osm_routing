@@ -30,16 +30,21 @@ class WebApi extends ScalatraFilter with ScalateSupport {
 
 
   get("/route.kml") {
+    //if (!params.contains("from") || !params.contains("to"))
+    //   <h1>please specify from and to parameters</h1>
+    //else {	
+      val start = System.currentTimeMillis()
+      val path = new Dijkstra(params("from").toInt, params("to").toInt).getPath
+      println("answered request in "+(System.currentTimeMillis()-start)+"ms (path: "+path.size+" nodes)\n")
+      contentType = "application/vnd.google-earth.kml+xml"
+      kml.build(path)	
+    //}
+  }
 
-	if (!params.contains("from") || !params.contains("to"))
-		<h1>please specify from and to parameters</h1>
-	else {	
-		val start = System.currentTimeMillis()
-		val path = new Dijkstra(params("from").toInt, params("to").toInt).getPath
-		println("answered request in "+(System.currentTimeMillis()-start)+"ms (path: "+path.size+" nodes)\n")
-		contentType = "application/vnd.google-earth.kml+xml"
-		kml.build(path)	
-	}
+
+  get("/hello") {
+    contentType = "text/html"
+    <h2>{MyJavaClass.sayHello}</h2>
   }
 
 

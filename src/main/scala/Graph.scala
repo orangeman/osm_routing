@@ -27,32 +27,32 @@ object Graph {
   val dist_array = ArrayBuffer[Int]()
 
   def load() {
-	print("loading graph..")
-	val nodes = new DataInputStream(new FileInputStream(new File("nodes.bin")))
-	while (nodes.available != 0) { node_array += nodes.readInt } 
-	val edges = new DataInputStream(new FileInputStream(new File("edges.bin")))
-	while (edges.available != 0) { edge_array += edges.readInt } 
-	val dists = new DataInputStream(new FileInputStream(new File("dists.bin")))
-	while (dists.available != 0) { dist_array += dists.readInt } 
-	println("  ("+node_array.size+" nodes, "+edge_array.size+" edges) Done.\n")
+    print("loading graph..")
+    val nodes = new DataInputStream(new FileInputStream(new File("nodes.bin")))
+    while (nodes.available != 0) { node_array += nodes.readInt } 
+    val edges = new DataInputStream(new FileInputStream(new File("edges.bin")))
+    while (edges.available != 0) { edge_array += edges.readInt } 
+    val dists = new DataInputStream(new FileInputStream(new File("dists.bin")))
+    while (dists.available != 0) { dist_array += dists.readInt } 
+    println("  ("+node_array.size+" nodes, "+edge_array.size+" edges) Done.\n")
   }
 
 
   case class Node(val id: Int, var dist: Int, var pred: Node, var index: Int) {
 
-	def visited = index > 0
-	def settled = index == -1
-	def relaxed = index >= +1
+    def visited = index > 0
+    //def settled = index == -1
+    //def relaxed = index >= +1
 
-	def foreach_outgoing(fun: (Int,Int) => Unit) {
-		for (i <- node_array(id) until node_array(id+1)) {
-			fun(edge_array(i), dist_array(i)) //call function foreach neighbour
-		}
-	}
+    def foreach_outgoing(fun: (Int,Int) => Unit) {
+        for (i <- node_array(id) until node_array(id+1)) {
+          fun(edge_array(i), dist_array(i))  // call function foreach neighbour
+        }
+    }
   }
 
   object Node {
-	def apply(id: Int, dist: Int = Int.MaxValue) = new Node(id, dist, null, 0)
+    def apply(id: Int, dist: Int = Int.MaxValue)  = new Node(id, dist, null, 0)
   }
 
 }

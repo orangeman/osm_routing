@@ -24,63 +24,67 @@ import Graph.Node
 class Dijkstra(source: Int, target: Int) {
 
 
-	def run {
+  def run {
 
-		val Q = new BinaryHeap()
-		Q.insert(Node(source, dist = 0))
+    val Q = new BinaryHeap()
+    Q.insert(Node(source, dist = 0))
 
-		while (!Q.isEmpty) {
+    while (!Q.isEmpty) {
 
-			var node = Q.extractMin
+      var node = Q.extractMin // now settled.
 
-			if (node.id == target) {
-				println("PATH FOUND (searched "+spt.size+" nodes(")
-				return
-			}
+      if (node.id == target) { //are we allready done?
+        println("PATH FOUND (searched "+spt.size+" nodes)")
+        return
+      }
 
-			node.foreach_outgoing { (neighbour , weight) => //relax
+      node.foreach_outgoing { (neighbour , weight) => // relaxation
 
-				if (neighbour.dist > node.dist + weight) {
-					
-					neighbour.dist = node.dist + weight
-					neighbour.pred = node
+        if (neighbour.dist > node.dist + weight) {
+            
+            neighbour.dist = node.dist + weight
+            neighbour.pred = node //predecessor
 
-					if (neighbour.visited)
-						Q.decreaseKey(neighbour)
-					else
-						Q.insert(neighbour)
-				}
-			}
-		}
-		println("NO PATH FOUND!!!   (searched "+spt.size+" nodes)")
-	}
+            if (neighbour.visited) //before
+              Q.decreaseKey(neighbour)
+            else // first time seen
+              Q.insert(neighbour)
+
+        }
+      }
+    }
+    println("NO PATH FOUND! (searched "+spt.size+" nodes)")
+  }
 
 	
-	def getPath = {
-		run // the algorithm
-		var node: Node = target
-		val path = ListBuffer[Int]()
-		while (node.pred != null) {
-			path += node.id //
-			node = node.pred
-		}
-		path += node.id
-		path.toList
-	}
+  def getPath = {
+    run // the algorithm
+    var node: Node = target
+    val path = ListBuffer[Int]()
+    while (node.pred != null) {
+      path += node.id //
+      node = node.pred
+    }
+    path += node.id
+    path.toList
+  }
 
-	def getDist = {
-		run // alg
-		target.dist
-	}
+
+  def getDist = {
+    run // alg
+    target.dist
+  }
+
+
 
 
 
 	// some magic
 	var spt: Map[Int, Node] = Map[Int, Node]()
 	implicit def getSPTNode(id: Int): Node = { 
-		spt.get(id) match { // even more magic
-		 case Some(node) => node; case None => 
-		   val nd = Node(id); spt(id) = nd; nd
-	}} 
+    spt.get(id) match { // even more magic
+     case Some(node) => node; case None => 
+       val nd = Node(id); spt(id) = nd; nd
+  }} 
 }
 
