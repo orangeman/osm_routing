@@ -126,6 +126,7 @@ object OsmParser {
       dist_out.writeInt(e.dist)   // write dists
       edge_buf += e.to     // collect edge array
     }
+    node_out.writeInt(edge_buf.size)
 
     //  replace osm ids with adjacency array ids
     edge_buf = edge_buf map osm_id_map

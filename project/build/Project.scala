@@ -23,8 +23,7 @@ class Project(info: ProjectInfo) extends DefaultWebProject(info) {
 
   lazy val parse = task { args =>
     val p = path(".") * "*.osm"
-log.info(p.toString )
-	if(args.length != 1)
+    if(args.length != 1)
       task { Some("Usage: parse <file>.osm") }
     else 
       runTask(Some("de.andlabs.routing.OsmParser"), runClasspath, args) dependsOn(compile)
