@@ -35,7 +35,7 @@ class WebApi extends ScalatraFilter with ScalateSupport {
     //else {	
       val start = System.currentTimeMillis()
       val path = new Dijkstra(params("from").toInt, params("to").toInt).getPath
-      println("answered request in "+(System.currentTimeMillis()-start)+"ms (path: "+path.size+" nodes)\n")
+      println((System.currentTimeMillis()-start)+"ms  ("+path.size+" nodes)\n")
       contentType = "application/vnd.google-earth.kml+xml"
       kml.build(path)	
     //}
