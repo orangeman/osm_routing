@@ -29,5 +29,8 @@ class Project(info: ProjectInfo) extends DefaultWebProject(info) {
       runTask(Some("de.andlabs.routing.OsmParser"), runClasspath, args) dependsOn(compile)
   } describedAs("parse openstreetmap file") completeWith((path(".") * "*.osm").get.map(_.toString.replace("./","")).toSeq)
 
+  lazy val calculateReach = task { args =>
+    runTask(Some("de.andlabs.routing.Reach"), runClasspath, args) dependsOn(compile)
+  } describedAs("determine reach values for each node")
 
 }

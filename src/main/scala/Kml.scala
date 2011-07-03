@@ -20,6 +20,7 @@ package de.andlabs.routing
 import java.io.{File, FileInputStream, DataInputStream}
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.XML
+import Reach.Edge
 
 
 object kml {
@@ -62,6 +63,48 @@ def build(path: List[Int]) = {
   }     
   </Document>
 </kml>
+
+}
+
+def reach() {
+  val G = ReachGraph
+  val kml =
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Style id="blueLine">
+      <LineStyle><color>59ffa500</color><width>55</width></LineStyle></Style>
+      <IconStyle><color>ff0000ff</color><scale>0.5</scale></IconStyle>
+    <Style id="translucent">
+      <LineStyle><color>00000000</color><width>0</width></LineStyle></Style>
+      <IconStyle><color>ff0000ff</color><scale>0.5</scale></IconStyle>
+		<StyleMap id="style">
+      <Pair><key>highlight</key><styleUrl>#blueLine</styleUrl></Pair>
+      <Pair><key>normal</key><styleUrl>#translucent</styleUrl></Pair>
+    </StyleMap> 
+  { for (i <- 0 until G.node_array.length-1) yield
+    <Placemark>
+      <styleUrl>#style</styleUrl>
+      <name>{Reach.get(i)}</name>
+      <description>foo bar</description>
+      <MultiGeometry>
+        <Point>
+          <coordinates> { latlon(i).lon },{ latlon(i).lat } </coordinates>
+        </Point>
+        { for (j <- G.node_array(i) until G.node_array(i+1)) yield
+          <LineString><extrude>1</extrude><tessellate>1</tessellate>
+            <coordinates> 
+              { latlon(i).lon },{ latlon(i).lat },0,
+              { latlon(G.edge_array(j)).lon },{ latlon(G.edge_array(j)).lat },0
+            </coordinates>
+          </LineString>
+        }
+      </MultiGeometry>
+    </Placemark>
+  }     
+  </Document>
+</kml>
+
+XML.save("reaches.kml", kml, "UTF-8", true, null)
 
 }
 }
