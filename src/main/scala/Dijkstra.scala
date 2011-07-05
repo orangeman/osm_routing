@@ -24,7 +24,7 @@ import Graph.Node
 class Dijkstra(source: Int, target: Int) {
 
 
-  def run {
+  def run: Int = {
 
     val Q = new BinaryHeap()
     Q.insert(Node(source, dist = 0))
@@ -34,8 +34,9 @@ class Dijkstra(source: Int, target: Int) {
       var node = Q.extractMin // now settled.
 
       if (node.id == target) { //are we allready done?
-        println("PATH FOUND (searched "+spt.size+" nodes)")
-        return
+        Q.stats
+        println("PATH FOUND: dist="+node.dist+"   (searched "+spt.size+" nodes)\n")
+        return node.dist
       }
 
       node.foreach_outgoing { (neighbour , weight) => // relaxation
@@ -54,6 +55,7 @@ class Dijkstra(source: Int, target: Int) {
       }
     }
     println("NO PATH FOUND! (searched "+spt.size+" nodes)")
+    99999
   }
 
 	
@@ -79,9 +81,9 @@ class Dijkstra(source: Int, target: Int) {
 
 
 
-	// some magic
-	var spt: Map[Int, Node] = Map[Int, Node]()
-	implicit def getSPTNode(id: Int): Node = { 
+  // some magic
+  var spt: Map[Int, Node] = Map[Int, Node]()
+  implicit def getSPTNode(id: Int): Node = { 
     spt.get(id) match { // even more magic
      case Some(node) => node; case None => 
        val nd = Node(id); spt(id) = nd; nd

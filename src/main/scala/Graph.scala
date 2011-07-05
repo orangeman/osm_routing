@@ -22,26 +22,30 @@ import scala.collection.mutable.{Map, ArrayBuffer}
 
 object Graph {
 
-  val node_array = ArrayBuffer[Int]()
-  val edge_array = ArrayBuffer[Int]()
-  val dist_array = ArrayBuffer[Int]()
+  var node_array: ArrayBuffer[Int] = null
+  var edge_array: ArrayBuffer[Int] = null
+  var dist_array: ArrayBuffer[Int] = null
 
-  def load() {
+  def load(f: String) {
+    
     print("loading graph..")
-    val nodes = new DataInputStream(new FileInputStream(new File("nodes.bin")))
-    while (nodes.available != 0) { node_array += nodes.readInt } 
-    val edges = new DataInputStream(new FileInputStream(new File("edges.bin")))
-    while (edges.available != 0) { edge_array += edges.readInt } 
-    val dists = new DataInputStream(new FileInputStream(new File("dists.bin")))
-    while (dists.available != 0) { dist_array += dists.readInt } 
-    println("  ("+node_array.size+" nodes, "+edge_array.size+" edges) Done.\n")
+    node_array = ArrayBuffer[Int]()
+    edge_array = ArrayBuffer[Int]()
+    dist_array = ArrayBuffer[Int]()
+    val nod = new DataInputStream(new FileInputStream(new File(f+"nodes.bin")))
+    while (nod.available != 0) { node_array += nod.readInt } 
+    val edg = new DataInputStream(new FileInputStream(new File(f+"edges.bin")))
+    while (edg.available != 0) { edge_array += edg.readInt } 
+    val dis = new DataInputStream(new FileInputStream(new File(f+"dists.bin")))
+    while (dis.available != 0) { dist_array += dis.readInt } 
+    println("  ("+node_array.size+" nodes, "+edge_array.size+" edges)   Done.")
   }
 
 
-  case class Node(val id: Int, var dist: Int, var pred: Node, var index: Int) {
+  case class Node(val id: Int, var dist: Int, var pred: Node, var index: Int, var det: Int) {
 
-    def visited = index > 0
-    //def settled = index == -1
+    def visited = index != 0
+    def settled = index == -1
     //def relaxed = index >= +1
 
     def foreach_outgoing(fun: (Int,Int) => Unit) {
@@ -52,7 +56,7 @@ object Graph {
   }
 
   object Node {
-    def apply(id: Int, dist: Int = Int.MaxValue)  = new Node(id, dist, null, 0)
+    def apply(id: Int, dist: Int = Int.MaxValue)  = new Node(id, dist, new Node(id, dist, null, 0, Int.MaxValue), 0, Int.MaxValue)
   }
 
 }

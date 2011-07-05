@@ -23,29 +23,47 @@ import Graph.Node
 
 class BinaryHeap {
 
+
+  var insert_counter = 0
+  var extract_counter = 0
+  var decrease_counter = 0
+  
+  def stats {
+    println("Heap stats: "+extract_counter+" extractMins,   "+insert_counter+" inserts   and "+decrease_counter+" decreaseKeys.")
+  }
+
   class BackingArray[A] extends java.util.ArrayList[A] {
       override def get(index: Int): A = super.get(index - 1)
       override def set(index: Int, value: A): A = super.set(index - 1, value)
   }
 
   val heap = new BackingArray[Node]()
+  
+  def size = heap.size
 
   def isEmpty: Boolean = heap.isEmpty()
 
   def insert(node: Node) = {
+      insert_counter = insert_counter+1
       heap.add(node) // relaxed
       node.index = heap.size()
       bubbleUp(node.index)
   }
 
   def decreaseKey(node: Node) {
+      decrease_counter = decrease_counter+1
       if (node.index > 1 && node.dist < heap.get(node.index/2).dist)
           bubbleUp(node.index)
       else
           bubbleDown(node.index)
   }	
 
+  def getMin = {
+    heap.get(1).dist
+  }
+
   def extractMin = {
+      extract_counter = extract_counter+1
       val min = heap.get(1)
       if (heap.size > 1) {
         val temp = heap.remove(heap.size()-1)

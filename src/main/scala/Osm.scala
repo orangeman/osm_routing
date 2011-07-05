@@ -88,6 +88,8 @@ object OsmParser {
         if (speed > 0) {
           val ids = way\"nd" map { (nd) => ((nd\"@ref").text.toInt)}
           for ((u,v) <- ids zip ids.tail) { 
+            //edges += Edge(u, v, ((dist(u,v).toFloat/speed)*3.6).toInt)
+            //edges += Edge(v, u, ((dist(v,u).toFloat/speed)*3.6).toInt)
             edges += Edge(u, v, dist(u,v))
             edges += Edge(v, u, dist(v,u))
           }

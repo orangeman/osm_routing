@@ -1,6 +1,5 @@
 package de.andlabs.routing
 
-import net.pragyah.scalgorithms.heaps.FibonacciHeap
 import org.scalatest.junit.JUnitSuite
 import scala.collection.mutable.ListBuffer
 import org.junit.Assert._
@@ -13,7 +12,7 @@ class DijkstraTestSuite extends JUnitSuite {
 
   @Test def testDijkstra() { 
 
-	val path = Dijkstra(273, 1428)//303137)//7209)
+	val path = new Dijkstra(273, 1428).getPath//303137)//7209)
 	//assertEquals(path.size, 100)
 	kml.write(path, "output.kml")
 	

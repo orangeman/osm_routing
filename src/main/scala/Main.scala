@@ -17,7 +17,6 @@
 
 package de.andlabs.routing
 
-import net.pragyah.scalgorithms.heaps.FibonacciHeap
 import scala.collection.mutable.PriorityQueue
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Map

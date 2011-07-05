@@ -26,13 +26,10 @@ import de.andlabs.routing.Graph.Node
 class WebApi extends ScalatraFilter with ScalateSupport {
 
 
-  Graph.load // when starting server
+  Graph.load("r_") // when starting server
 
 
   get("/route.kml") {
-    //if (!params.contains("from") || !params.contains("to"))
-    //   <h1>please specify from and to parameters</h1>
-    //else {	
       val start = System.currentTimeMillis()
       val path = new Dijkstra(params("from").toInt, params("to").toInt).getPath
       println((System.currentTimeMillis()-start)+"ms  ("+path.size+" nodes)\n")
@@ -41,6 +38,14 @@ class WebApi extends ScalatraFilter with ScalateSupport {
     //}
   }
 
+  get("/routes.kml") {
+      val start = System.currentTimeMillis()
+      val (dist, path) = new ReachDijkstra(params("from").toInt, params("to").toInt).run
+      println((System.currentTimeMillis()-start)+"ms  ("+path.size+" nodes)\n")
+      contentType = "application/vnd.google-earth.kml+xml"
+      kml.path(dist, path)	
+    //}
+  }
 
   get("/hello") {
     contentType = "text/html"

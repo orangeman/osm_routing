@@ -17,59 +17,71 @@
 
 package de.andlabs.routing
 
-import java.io.{ File, FileOutputStream, DataOutputStream }
+import java.io.{ File, FileWriter, FileOutputStream, DataOutputStream }
 import scala.collection.mutable.{ ArrayBuffer, Map }
 import scala.math
 import Graph.Node
 
 object Reach {
 
-Graph.load
+Graph.load("")
 val get = new Array[Int](Graph.node_array.length)
 case class Edge(from:Int, to:Int, dist:Int)
 val edges = new ArrayBuffer[Edge]()
 
 def main(args: Array[String]) {
 
-  println
-  
-  print("computing reach values..   ")
-  for (i <- 0 until Graph.node_array.length-1) {
-    findReachValues(i)
-  }
-  println("Done. \n")
-  
-  print("constructing reach Graph.. ")
-  for (i <- 0 until Graph.node_array.length-1) {
-    addOverlayEdges(i)
-  }
-  println("Done. \n")
 
-  var i = 0
-  var edge_buf = ArrayBuffer[Int]()
+  println
+  val nodeNmb = Graph.node_array.length-1
+  val percent = nodeNmb.toFloat / 10
+
+  print("determining reach values")
+  for (i <- 0 until nodeNmb) {
+    findReachValues(i)
+    if (i % percent < 1) print(".")
+  }
+  val reach_out = dataOutputStream("reaches.bin")
+  val fw = new FileWriter("reaches.txt") 
+  for (i <- 0 until nodeNmb) {
+    fw.write(Reach.get(i)+"\n")
+  }
+  fw.close()
+  println(" Done. \n")
+  
+  print("constructing reach graph")
+  for (i <- 0 until nodeNmb) {
+    addOverlayEdges(i)
+    if (i % percent < 1) print(".")
+  }
+  println(" Done. \n")
+
+  print("writing adjacency array..")
   val node_out = dataOutputStream("r_nodes.bin")
   val edge_out = dataOutputStream("r_edges.bin")
   val dist_out = dataOutputStream("r_dists.bin")
 
-  for (id <- 0 until Graph.node_array.length-1) {
+  var i = 0
+  var reach_sum = 0
+  for (id <- 0 until nodeNmb) {
+    node_out.writeInt(i)
+    reach_sum = reach_sum + Reach.get(id)
     while (i < edges.size && edges(i).from == id) {
       edge_out.writeInt(edges(i).to)
       dist_out.writeInt(edges(i).dist)
       i = i+1
     }
-    node_out.writeInt(i)
   }
+  node_out.writeInt(i)
+  println("Done. ")
+  println("(avg degree: "+(edges.size/nodeNmb)+", "+
+            "avg reach: "+reach_sum/nodeNmb+")\n\n")
 
-  ReachGraph.load
+  Graph.load("r_")
   kml.reach()
-  
-  
-  println("avg degree: "+(edges.size/(Graph.node_array.length-1)))
-  
-  
   println
 
-}
+  }
 
 def addOverlayEdges(source: Int) {
 
@@ -79,24 +91,37 @@ def addOverlayEdges(source: Int) {
   var node = Node(source, dist = 0)
   Q.insert(node)
 
-  while (node.dist <= reach && !Q.isEmpty) {
+  while (!Q.isEmpty) {
   
-    if (Reach.get(node.id) >= reach && node.id != source) {
-      edges += Edge(source, node.id, node.dist)
-    }
+    node = Q.extractMin // now settled.
+    var pred: Node = null
+    
+    if (node.pred != null) {
+      if(Reach.get(node.id) >= reach && node.id != source) {
+        edges += Edge(source, node.id, node.dist)
+        pred = null // branch covered
+      } else pred = node
+    } 
 
+    var r = 0
     node.foreach_outgoing { (neighbour , weight) => // relaxation
+      
       if (neighbour.dist > node.dist + weight) {
           neighbour.dist = node.dist + weight
-          neighbour.pred = node //predecessor
-
+          neighbour.pred = pred //predecessor
+          r = r+1
+    
           if (neighbour.visited) //before
             Q.decreaseKey(neighbour)
           else // first time seen
             Q.insert(neighbour)
       }
     }
-    node = Q.extractMin // now settled.
+    if (r == 0 && node.pred != null) {
+      while (Reach.get(node.id) <= reach && node.pred != null) node = node.pred
+      val e = Edge(source, node.id, node.dist)
+      if (!edges.contains(e) && source != node.id) edges += e
+    }
   }
 }
 

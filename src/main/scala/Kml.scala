@@ -66,8 +66,95 @@ def build(path: List[Int]) = {
 
 }
 
+
+def path(min: Int, routes: List[(Int, Int, List[Int])]) = {
+
+val s = latlon(routes.head._1)
+val t = latlon(routes.head._2)
+val vias = routes.tail
+
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+   <Style id="green">
+      <IconStyle><color>ff00ff00</color><scale>2</scale></IconStyle>
+      <LineStyle><color>ff00ff00</color><width>77</width></LineStyle>
+   </Style>
+   <Style id="yellow">
+      <IconStyle><color>7700ffff</color><scale>1</scale></IconStyle>
+      <LineStyle><color>8800ffff</color><width>3</width></LineStyle>
+   </Style>
+   <Style id="red">
+      <IconStyle><color>770000ff</color><scale>0.5</scale></IconStyle>
+      <LineStyle><color>440000ff</color><width>2</width></LineStyle>
+   </Style>
+    <Placemark>
+      <name>START</name>
+      <description>Distance={min}</description>
+      <styleUrl>#green</styleUrl>
+      <Point><coordinates> { s.lon },{ s.lat } </coordinates></Point>
+    </Placemark>
+    <Placemark>
+      <name>ZIEL</name>
+      <description>Distance={min}</description>
+      <styleUrl>#green</styleUrl>
+      <Point><coordinates> { t.lon },{ t.lat } </coordinates></Point>
+    </Placemark>
+  { for ((via, det, path) <- vias) yield
+    <Placemark>
+      <name>{det}</name>
+      <description>foo bar</description>
+      { if (det < 1) 
+        <styleUrl>#green</styleUrl>
+        <MultiGeometry>
+         { for ((a,b) <- path zip path.tail) yield
+            <LineString><extrude>1</extrude><tessellate>1</tessellate>
+              <coordinates> 
+                { latlon(a).lon },{ latlon(a).lat },0, { latlon(b).lon },{ latlon(b).lat },0
+              </coordinates>
+            </LineString>
+         }
+        </MultiGeometry>
+      else if (det < 1500) 
+        <styleUrl>#yellow</styleUrl>
+        <MultiGeometry>
+          <Point>
+            <coordinates> { latlon(via).lon },{ latlon(via).lat } </coordinates>
+          </Point>
+         { for ((a,b) <- path zip path.tail) yield
+            <LineString><extrude>1</extrude><tessellate>1</tessellate>
+              <coordinates> 
+                { latlon(a).lon },{ latlon(a).lat },0, { latlon(b).lon },{ latlon(b).lat },0
+              </coordinates>
+            </LineString>
+         }
+        </MultiGeometry>
+      else 
+        <styleUrl>#red</styleUrl>
+        <MultiGeometry>
+          <Point>
+            <coordinates> { latlon(via).lon },{ latlon(via).lat } </coordinates>
+          </Point>
+         { for ((a,b) <- path zip path.tail) yield
+            <LineString><extrude>1</extrude><tessellate>1</tessellate>
+              <coordinates> 
+                { latlon(a).lon },{ latlon(a).lat },0, { latlon(b).lon },{ latlon(b).lat },0
+              </coordinates>
+            </LineString>
+         }
+        </MultiGeometry>
+      }
+    </Placemark>
+  }     
+  </Document>
+</kml>
+
+//XML.save("routes.kml", kml, "UTF-8", true, null)
+
+}
+
+
 def reach() {
-  val G = ReachGraph
+  val G = Graph
   val kml =
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
@@ -85,7 +172,7 @@ def reach() {
     <Placemark>
       <styleUrl>#style</styleUrl>
       <name>{Reach.get(i)}</name>
-      <description>foo bar</description>
+      <description>Node Id: {i}</description>
       <MultiGeometry>
         <Point>
           <coordinates> { latlon(i).lon },{ latlon(i).lat } </coordinates>

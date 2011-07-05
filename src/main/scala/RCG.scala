@@ -18,41 +18,153 @@
 package de.andlabs.routing
 
 import java.io.{File, FileInputStream, DataInputStream}
-import scala.collection.mutable.{Map, ArrayBuffer}
+import scala.collection.mutable.{Map, ArrayBuffer, ListBuffer}
+import Graph.Node
 
-object ReachGraph {
 
-  val node_array = ArrayBuffer[Int]()
-  val edge_array = ArrayBuffer[Int]()
-  val dist_array = ArrayBuffer[Int]()
+class ReachDijkstra(source: Int, target: Int) {
 
-  def load() {
-    print("loading graph..")
-    val nod = new DataInputStream(new FileInputStream(new File("r_nodes.bin")))
-    while (nod.available != 0) { node_array += nod.readInt } 
-    val edg = new DataInputStream(new FileInputStream(new File("r_edges.bin")))
-    while (edg.available != 0) { edge_array += edg.readInt } 
-    val dis = new DataInputStream(new FileInputStream(new File("r_dists.bin")))
-    while (dis.available != 0) { dist_array += dis.readInt } 
-    println("  ("+node_array.size+" nodes, "+edge_array.size+" edges) Done.\n")
+  var forward = true
+  var fExp = 0
+  var bExp = 0
+  val fQ = new BinaryHeap()
+  val bQ = new BinaryHeap()
+	var fspt: Map[Int, Node] = Map[Int, Node]()
+  var bspt: Map[Int, Node] = Map[Int, Node]()
+
+  def run: (Int, List[(Int, Int, List[Int])]) = {
+
+    val s = Node(source, dist = 0)
+    val t = Node(target, dist = 0)
+    fspt(s.id) = s; bspt(t.id) = t
+    fQ.insert(s); bQ.insert(t)
+
+    val vias = ListBuffer[(Int, Int)]()
+
+    var i = 0
+    var min = 99999
+    while (!fQ.isEmpty || !bQ.isEmpty) { 
+
+      i = i+1    
+      if ((fQ.size < bQ.size && !fQ.isEmpty) || bQ.isEmpty)
+        forward = true
+      else
+        forward = false
+
+      var node = Q.extractMin // now settled.
+      //println(i+": "+(if (forward) " --> " else " <-- ")+" settled node "+node.id+" (dist="+node.dist+")")
+
+      if (other(node.id).settled) {
+        if (other(node.id).dist+node.dist < min) min = other(node.id).dist+node.dist
+        //fQ.stats; bQ.stats
+        //println("PATH FOUND (met at "+node.id+", dist: "+(other(node.id).dist+node.dist)+", searched "+(fspt.size+bspt.size)+" nodes) "+fExp+"  "+bExp)
+        vias += ((node.id, other(node.id).dist + node.dist))
+        if (fExp > 2* min && bExp > 2* min) {
+          //println("PATH FOUND: dist="+min+"   (searched "+(fspt.size+bspt.size)+" nodes, found "+vias.size+" vias)\n")
+          for ((via, dist) <- vias) {
+            var n: Node = via
+            while (n.pred != null) { n.det = math.min(dist-min, n.det); n = n.pred }
+            n = other(via)
+            while (n.pred != null) { n.det = math.min(dist-min, n.det); n = n.pred }
+          }
+          val routes = ListBuffer[(Int, Int, List[Int])]()
+          routes += ((source, target, null))
+          for ((via, dist) <- vias) {
+            var p = ListBuffer[Int]()
+            var n: Node = via
+            while (n.pred != null && n.pred.det == n.det) { p += n.pred.id; n = n.pred }
+            if (n.pred != null) p += n.pred.id
+            p = p.reverse
+            p += via
+            n = other(via)
+            while (n.pred != null && n.pred.det == n.det) { p += n.pred.id; n = n.pred }
+            if (n.pred != null) p += n.pred.id
+            if (!p.isEmpty)
+              routes += ((via, via.det, p.toList))
+          }
+          return (min, routes.toList)
+        }
+      }
+
+      var c = 0
+      var r = 0 
+      node.foreach_outgoing { (neighbour , weight) => // relaxation
+        c = c+1
+        
+        if (neighbour.dist > node.dist + weight) {
+            r = r+1
+            
+            neighbour.dist = node.dist + weight
+            neighbour.pred = node //predecessor
+
+            if (neighbour.visited) //before
+              Q.decreaseKey(neighbour)
+            else // first time seen
+              Q.insert(neighbour)
+
+        }
+      }
+      //println("         checked "+c+" neighbours, relaxed "+r+" \n")
+      
+    }
+    fQ.stats; bQ.stats
+    println("PATH FOUND (full): dist="+min+"   (searched "+(fspt.size+bspt.size)+" nodes, found "+vias.size+" vias)\n")
+    for ((via, dist) <- vias) {
+            var n: Node = via
+            while (n.pred != null) { n.det = math.min(dist-min, n.det); n = n.pred }
+            n = other(via)
+            while (n.pred != null) { n.det = math.min(dist-min, n.det); n = n.pred }
+          }
+          val routes = ListBuffer[(Int, Int, List[Int])]()
+          routes += ((source, target, null))
+          for ((via, dist) <- vias) {
+            var p = ListBuffer[Int]()
+            var n: Node = via
+            while (n.pred != null && n.pred.det == n.det) { p += n.pred.id; n = n.pred }
+            if (n.pred != null) p += n.pred.id
+            p = p.reverse
+            p += via
+            n = other(via)
+            while (n.pred != null && n.pred.det == n.det) { p += n.pred.id; n = n.pred }
+            if (n.pred != null) p += n.pred.id
+            if (!p.isEmpty)
+              routes += ((via, via.det, p.toList))
+          }
+          return (min, routes.toList)
   }
 
-
-  case class Node(val id: Int, var dist: Int, var pred: Node, var index: Int) {
-
-    def visited = index > 0
-    //def settled = index == -1
-    //def relaxed = index >= +1
-
-    def foreach_outgoing(fun: (Int,Int) => Unit) {
-        for (i <- node_array(id) until node_array(id+1)) {
-          fun(edge_array(i), dist_array(i))  // call function foreach neighbour
-        }
+  def Q = {
+    if (forward) {
+      if (!fQ.isEmpty) fExp = fQ.getMin
+      fQ
+    } else {
+      if (!bQ.isEmpty) bExp = bQ.getMin
+      bQ
     }
   }
+  
+  def other(id: Int): Node = {
+    val spt = if (forward) bspt else fspt
+    spt.get(id) match {
+     case Some(node) => node; case None => 
+       val nd = Node(id); spt(id) = nd; nd
+	}}
+	
+	// some magic
+	implicit def getSPTNode(id: Int): Node = {
+	  val spt = if (forward) fspt else bspt
+    spt.get(id) match { // even more magic
+     case Some(node) => node; case None => 
+       val nd = Node(id); spt(id) = nd; nd
+  }} 
 
-  object Node {
-    def apply(id: Int, dist: Int = Int.MaxValue)  = new Node(id, dist, null, 0)
+
+  def getDist = {
+    target.dist
   }
+
+
+
+
 
 }
