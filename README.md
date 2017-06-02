@@ -1,7 +1,7 @@
 osm routing
 ===========
 
-super simple shortestpaths for [opentreetmap](http://openstreetmap.org)
+super simple shortestpaths for [openstreetmap](http://openstreetmap.org)
 
 plain [Dijkstra](https://github.com/orangeman/osm_routing/blob/master/src/main/scala/Dijkstra.scala) implementation in scala with a rest-ful [WebAPI](https://github.com/orangeman/osm_routing/blob/master/src/main/scala/WebAPI.scala )
 
